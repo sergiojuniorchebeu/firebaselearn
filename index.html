@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Leçon 1 — Flutter + Firebase (Découverte & Lecture)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            soft: {
+              50: '#fefefe',
+              100: '#f8f9fa',
+              200: '#f1f3f4',
+              300: '#e8eaed',
+              400: '#dadce0',
+              500: '#c4c7c5',
+              600: '#9aa0a6',
+              700: '#5f6368'
+            },
+            lavender: {
+              50: '#faf9ff',
+              100: '#f5f3ff',
+              200: '#ede9fe',
+              300: '#ddd6fe',
+              400: '#c4b5fd',
+              500: '#a78bfa',
+              600: '#8b5cf6'
+            },
+            sage: {
+              50: '#f7f9f7',
+              100: '#f0f4f0',
+              200: '#dde8dd',
+              300: '#c5d6c5',
+              400: '#a8c2a8',
+              500: '#8fad8f',
+              600: '#759975'
+            },
+            peach: {
+              50: '#fff9f7',
+              100: '#fef2ee',
+              200: '#fce4d6',
+              300: '#f9d0b7',
+              400: '#f5b895',
+              500: '#f0a070',
+              600: '#ea8a47'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html{scroll-behavior:smooth}
+    body {
+      background: linear-gradient(135deg, #faf9ff 0%, #f8f9fa 50%, #f7f9f7 100%);
+    }
+    pre{
+      background: linear-gradient(135deg, #f5f3ff 0%, #f0f4f0 100%);
+      color: #5f6368;
+      padding: 1.5rem;
+      border-radius: 1rem;
+      overflow: auto;
+      box-shadow: 0 2px 8px -2px rgba(139, 92, 246, 0.1);
+      border: 1px solid #ede9fe;
+    }
+    code{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      background: rgba(167, 139, 250, 0.1);
+      padding: 0.15rem 0.35rem;
+      border-radius: 0.375rem;
+      color: #6d28d9;
+      font-size: 0.9em;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+    }
+    .chip{
+      font-size: 0.75rem;
+      background: linear-gradient(135deg, #faf9ff 0%, #ede9fe 100%);
+      color: #7c3aed;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      border: 1px solid #ddd6fe;
+      box-shadow: 0 1px 2px rgba(124, 58, 237, 0.1);
+    }
+    .callout{
+      border-left: 4px solid #a78bfa;
+      background: linear-gradient(135deg, #faf9ff 0%, #f5f3ff 100%);
+      border-radius: 0.75rem;
+      box-shadow: 0 1px 3px rgba(167, 139, 250, 0.1);
+    }
+    .glass{
+      backdrop-filter: blur(20px);
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(237, 233, 254, 0.6);
+      box-shadow: 0 1px 3px rgba(167, 139, 250, 0.1);
+    }
+    .section-card{
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(250, 249, 255, 0.8) 100%);
+      border: 1px solid #ede9fe;
+      box-shadow: 0 2px 6px -1px rgba(167, 139, 250, 0.08);
+      transition: all 0.4s ease;
+      backdrop-filter: blur(10px);
+    }
+    .section-card:hover{
+      box-shadow: 0 4px 12px -2px rgba(167, 139, 250, 0.15);
+      transform: translateY(-2px);
+      border-color: #ddd6fe;
+    }
+    @keyframes fadeInUp{
+      from{opacity:0;transform:translate3d(0,20px,0)}
+      to{opacity:1;transform:translate3d(0,0,0)}
+    }
+    .fade-in-up{
+      animation: fadeInUp 0.8s ease both;
+    }
+    .btn-primary{
+      background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+      color: white;
+      border-radius: 1rem;
+      padding: 0.8rem 1.4rem;
+      box-shadow: 0 4px 14px -4px rgba(167, 139, 250, 0.4);
+      transition: all 0.3s ease;
+      border: none;
+      font-weight: 500;
+    }
+    .btn-primary:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px -4px rgba(167, 139, 250, 0.6);
+      background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    }
+    .number-badge {
+      background: linear-gradient(135deg, #f0a070 0%, #ea8a47 100%);
+      color: white;
+      border-radius: 50%;
+      width: 2rem;
+      height: 2rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-right: 0.75rem;
+      box-shadow: 0 2px 6px -1px rgba(240, 160, 112, 0.3);
+    }
+    h2, h3 {
+      color: #5f6368;
+      margin-bottom: 1rem;
+    }
+    h4 {
+      color: #6d28d9;
+      margin-bottom: 0.75rem;
+    }
+    .text-soft {
+      color: #5f6368;
+    }
+    ol li, ul li {
+      margin-bottom: 0.5rem;
+      color: #5f6368;
+    }
+    .intro-card {
+      background: linear-gradient(135deg, rgba(250, 249, 255, 0.9) 0%, rgba(247, 249, 247, 0.9) 100%);
+      border: 1px solid rgba(221, 214, 254, 0.5);
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Bar -->
+  <header class="sticky top-0 z-20 glass">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+      <h1 class="text-lg sm:text-xl font-medium text-soft-700">Leçon 1 — Flutter + Firestore (Découverte)</h1>
+      <a href="lesson2_crud_visuel.html" class="hidden sm:inline-flex btn-primary" title="Leçon suivante">Leçon suivante ➜</a>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-8 space-y-10">
+    <!-- Intro -->
+    <section class="intro-card rounded-2xl p-8 fade-in-up">
+      <p class="text-soft text-lg leading-relaxed">On va aller <strong class="text-lavender-600">doucement</strong>, avec un ton <strong class="text-sage-600">pédagogique</strong> et <strong class="text-peach-600">progressif</strong>, jusqu'à créer une première app Flutter connectée à <span class="chip">Firebase Cloud Firestore</span>.</p>
+    </section>
+
+    <!-- Plan -->
+    <section class="section-card rounded-2xl p-8 fade-in-up">
+      <h2 class="text-2xl font-semibold flex items-center mb-6">
+        <span class="text-2xl mr-3">📍</span> Plan du cours
+      </h2>
+      <ol class="space-y-3">
+        <li class="flex items-center">
+          <span class="number-badge">1</span>
+          <span class="text-soft">Comprendre Firebase & Firestore</span>
+        </li>
+        <li class="flex items-center">
+          <span class="number-badge">2</span>
+          <span class="text-soft">Créer un projet Firebase</span>
+        </li>
+        <li class="flex items-center">
+          <span class="number-badge">3</span>
+          <span class="text-soft">Connecter Flutter à Firebase</span>
+        </li>
+        <li class="flex items-center">
+          <span class="number-badge">4</span>
+          <span class="text-soft">Créer une collection et ajouter des données</span>
+        </li>
+        <li class="flex items-center">
+          <span class="number-badge">5</span>
+          <span class="text-soft">Lire les données dans l'application</span>
+        </li>
+        <li class="flex items-center">
+          <span class="number-badge">6</span>
+          <span class="text-soft">Modifier et supprimer des données</span>
+        </li>
+        <li class="flex items-center">
+          <span class="number-badge">7</span>
+          <span class="text-soft">Premier mini-exercice pratique</span>
+        </li>
+      </ol>
+    </section>
+
+    <!-- 1) Comprendre -->
+    <section class="section-card rounded-2xl p-8 fade-in-up">
+      <h3 class="text-2xl font-semibold flex items-center">
+        <span class="number-badge mr-4">1</span>Comprendre Firebase & Firestore
+      </h3>
+      <div class="space-y-6 ml-12">
+        <div>
+          <h4 class="text-lg font-medium">Qu'est-ce que Firebase ?</h4>
+          <ul class="list-disc pl-6 text-soft space-y-2">
+            <li>Plateforme Google pour <strong class="text-lavender-600">créer rapidement des applications</strong>.</li>
+            <li>Elle propose : <span class="chip">Cloud Firestore</span>, <span class="chip">Authentification</span>, <span class="chip">Stockage</span>, <span class="chip">Notifications</span>, etc.</li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-lg font-medium">Qu'est-ce que Cloud Firestore ?</h4>
+          <ul class="list-disc pl-6 text-soft space-y-2">
+            <li>Base de données <strong class="text-sage-600">NoSQL</strong> (documents & collections).</li>
+            <li><strong class="text-peach-600">Temps réel</strong> : l'app se met à jour automatiquement.</li>
+            <li>Données en ligne + <strong class="text-lavender-600">cache hors ligne</strong>.</li>
+          </ul>
+        </div>
+        <div class="callout p-4 mt-4">
+          <p class="text-soft">📌 Image mentale : <strong class="text-lavender-600">Classeur</strong> → <strong class="text-sage-600">Pochettes</strong> (collections) → <strong class="text-peach-600">Feuilles</strong> (documents) → <strong class="text-lavender-600">Champs</strong> (infos).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2) Projet Firebase -->
+    <section class="section-card rounded-2xl p-8 fade-in-up">
+      <h3 class="text-2xl font-semibold flex items-center">
+        <span class="number-badge mr-4">2</span>Créer un projet Firebase
+      </h3>
+      <ol class="list-decimal pl-6 text-soft space-y-3 ml-12">
+        <li>Aller sur <strong class="text-lavender-600">https://console.firebase.google.com</strong></li>
+        <li>Cliquer <em class="text-sage-600">"Ajouter un projet"</em></li>
+        <li>Nommer, ex. <code>MonProjetFlutter</code></li>
+        <li>Désactiver Google Analytics (pour simplifier)</li>
+        <li>Cliquer l'icône Android/iOS pour ajouter l'app</li>
+      </ol>
+    </section>
+
+    <!-- 3) Connecter Flutter -->
+    <section class="section-card rounded-2xl p-8 fade-in-up">
+      <h3 class="text-2xl font-semibold flex items-center">
+        <span class="number-badge mr-4">3</span>Connecter Flutter à Firebase
+      </h3>
+      <div class="ml-12 space-y-6">
+        <div>
+          <p class="text-soft mb-4">Ajouter les packages dans <code>pubspec.yaml</code> :</p>
+          <pre><code>dependencies:
+  flutter:
+    sdk: flutter
+  firebase_core: ^3.5.0
+  cloud_firestore: ^5.4.4</code></pre>
+        </div>
+        <pre><code>$ flutter pub get</code></pre>
+        <div>
+          <p class="text-soft mb-4">Initialiser Firebase dans <code>main.dart</code> :</p>
+          <pre><code>import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Firestore Demo',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: const HomePage(),
+    );
+  }
+}</code></pre>
+        </div>
+        <p class="text-sm text-soft-600">💡 <code>firebase_options.dart</code> est généré par <code>flutterfire configure</code>.</p>
+      </div>
+    </section>
+
+    <!-- 4) Collection -->
+    <section class="section-card rounded-2xl p-8 fade-in-up">
+      <h3 class="text-2xl font-semibold flex items-center">
+        <span class="number-badge mr-4">4</span>Créer une collection et ajouter des données
+      </h3>
+      <div class="ml-12 space-y-4">
+        <ol class="list-decimal pl-6 text-soft space-y-2">
+          <li>Ouvrir <strong class="text-lavender-600">Firestore Database</strong></li>
+          <li>Cliquer <em class="text-sage-600">Créer une base de données</em> (Mode production OK)</li>
+          <li>Créer une collection : <code>produits</code></li>
+          <li>Ajouter un premier document :</li>
+        </ol>
+        <pre><code>{
+  "nom": "Stylo",
+  "prix": 500
+}</code></pre>
+      </div>
+    </section>
+
+    <!-- 5) Lire -->
+    <section class="section-card rounded-2xl p-8 fade-in-up">
+      <h3 class="text-2xl font-semibold flex items-center">
+        <span class="number-badge mr-4">5</span>Lire les données dans l'application
+      </h3>
+      <div class="ml-12 space-y-4">
+        <pre><code>import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Liste des Produits")),
+      body: StreamBuilder&lt;QuerySnapshot&gt;(
+        stream: FirebaseFirestore.instance.collection('produits').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Text("Erreur de chargement");
+          }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const CircularProgressIndicator();
+          }
+
+          final data = snapshot.data!.docs;
+
+          return ListView.builder(
+            itemCount: data.length,
+            itemBuilder: (context, index) {
+              final produit = data[index];
+              return ListTile(
+                title: Text(produit['nom']),
+                subtitle: Text("${produit['prix']} XAF"),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}</code></pre>
+        <div class="callout p-4">
+          <p class="text-soft">📌 <strong class="text-lavender-600">StreamBuilder</strong> écoute en temps réel la collection <code>produits</code> et met à jour la liste automatiquement.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6) Ajouter depuis l'app -->
+    <section class="section-card rounded-2xl p-8 fade-in-up">
+      <h3 class="text-2xl font-semibold flex items-center">
+        <span class="number-badge mr-4">6</span>Ajouter un produit depuis l'application
+      </h3>
+      <div class="ml-12 space-y-4">
+        <pre><code>FloatingActionButton(
+  onPressed: () {
+    FirebaseFirestore.instance.collection('produits').add({
+      'nom': 'Cahier',
+      'prix': 1000,
+    });
+  },
+  child: const Icon(Icons.add),
+)</code></pre>
+        <ul class="list-disc pl-6 text-soft space-y-2">
+          <li>Ajoute un document dans <code>produits</code>.</li>
+          <li>Firestore crée un <strong class="text-peach-600">ID unique</strong> automatiquement.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 7) Exercice -->
+    <section class="section-card rounded-2xl p-8 fade-in-up">
+      <h3 class="text-2xl font-semibold flex items-center">
+        <span class="number-badge mr-4">7</span>Mini-exercice pratique 🎯
+      </h3>
+      <div class="ml-12 space-y-6">
+        <div>
+          <h4 class="text-lg font-medium">Objectif</h4>
+          <ul class="list-disc pl-6 text-soft space-y-2">
+            <li>Liste de produits (nom + prix)</li>
+            <li>Bouton pour <strong class="text-sage-600">ajouter</strong> un produit</li>
+            <li>Affichage <strong class="text-peach-600">en temps réel</strong></li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="text-lg font-medium">Étapes guidées</h4>
+          <ol class="list-decimal pl-6 text-soft space-y-2">
+            <li>Créer un projet Firebase</li>
+            <li>Connecter l'app Flutter</li>
+            <li>Créer la collection <code>produits</code></li>
+            <li>Afficher les produits avec <code>StreamBuilder</code></li>
+            <li>Ajouter un produit via un bouton</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- Next lesson CTA -->
+    <section class="glass rounded-2xl p-8 flex items-center justify-between">
+      <div>
+        <h4 class="text-xl font-medium text-soft-700 mb-2">Prêt pour la Leçon 2 ?</h4>
+        <p class="text-soft">On ajoutera un <strong class="text-lavender-600">CRUD visuel</strong> (ajout, édition, suppression) avec un formulaire.</p>
+      </div>
+      <a href="lesson2_crud_visuel.html" class="btn-primary">Leçon suivante ➜</a>
+    </section>
+
+    <footer class="text-center text-sm text-soft-500 py-8">
+      © 2025 – Leçon 1 (Découverte & Lecture) –Sergio Junior Chebeu
+    </footer>
+  </main>
+</body>
+</html>

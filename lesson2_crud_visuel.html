@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Leçon 2 — CRUD Visuel (à venir)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {50:'#f0f9ff',100:'#e0f2fe',200:'#bae6fd',300:'#7dd3fc',400:'#38bdf8',500:'#0ea5e9',600:'#0284c7',700:'#0369a1'},
+            accent: {50:'#fdf4ff',100:'#fae8ff',200:'#f5d0fe',300:'#f0abfc',400:'#e879f9',500:'#d946ef',600:'#c026d3'}
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html{scroll-behavior:smooth}
+    .glass{backdrop-filter:blur(16px);background:rgba(255,255,255,.75);border:1px solid rgba(226,232,240,.7)}
+    .btn-primary{background:linear-gradient(135deg,#0ea5e9,#0369a1);color:#fff;border-radius:.75rem;padding:.7rem 1.1rem;box-shadow:0 10px 16px -8px rgba(2,132,199,.35);transition:.2s}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 12px 22px -8px rgba(2,132,199,.5)}
+  </style>
+</head>
+<body class="bg-gradient-to-b from-primary-50 via-white to-primary-50 text-slate-900">
+  <main class="max-w-4xl mx-auto px-4 py-16">
+    <section class="glass rounded-2xl p-10 text-center">
+      <h1 class="text-3xl font-extrabold mb-2">Leçon 2 — CRUD Visuel</h1>
+      <p class="text-slate-700">Cette page sera remplie avec le formulaire d’ajout/édition/suppression, la liste en temps réel, et les bonnes pratiques ✨</p>
+      <div class="mt-6">
+        <a href="lesson1_firebase_debutant.html" class="btn-primary">← Revenir à la Leçon 1</a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
