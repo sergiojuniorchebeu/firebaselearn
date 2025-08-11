@@ -1,38 +1,485 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Leçon 2 — CRUD Visuel (à venir)</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Leçon 2 — CRUD Firestore (Multi-fichiers, SANS service/model/contrôleurs)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: {50:'#f0f9ff',100:'#e0f2fe',200:'#bae6fd',300:'#7dd3fc',400:'#38bdf8',500:'#0ea5e9',600:'#0284c7',700:'#0369a1'},
-            accent: {50:'#fdf4ff',100:'#fae8ff',200:'#f5d0fe',300:'#f0abfc',400:'#e879f9',500:'#d946ef',600:'#c026d3'}
-          }
-        }
-      }
-    }
+    tailwind.config = { theme:{ extend:{ colors:{
+      soft:{50:'#fefefe',100:'#f8f9fa',200:'#f1f3f4',300:'#e8eaed',400:'#dadce0',500:'#c4c7c5',600:'#9aa0a6',700:'#5f6368'},
+      lavender:{50:'#faf9ff',100:'#f5f3ff',200:'#ede9fe',300:'#ddd6fe',400:'#c4b5fd',500:'#a78bfa',600:'#8b5cf6'},
+      sage:{50:'#f7f9f7',100:'#f0f4f0',200:'#dde8dd',300:'#c5d6c5',400:'#a8c2a8',500:'#8fad8f',600:'#759975'},
+      peach:{50:'#fff9f7',100:'#fef2ee',200:'#fce4d6',300:'#f9d0b7',400:'#f5b895',500:'#f0a070',600:'#ea8a47'}
+    }}}}
   </script>
   <style>
     html{scroll-behavior:smooth}
-    .glass{backdrop-filter:blur(16px);background:rgba(255,255,255,.75);border:1px solid rgba(226,232,240,.7)}
-    .btn-primary{background:linear-gradient(135deg,#0ea5e9,#0369a1);color:#fff;border-radius:.75rem;padding:.7rem 1.1rem;box-shadow:0 10px 16px -8px rgba(2,132,199,.35);transition:.2s}
-    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 12px 22px -8px rgba(2,132,199,.5)}
+    body{background:linear-gradient(135deg,#faf9ff 0%,#f8f9fa 50%,#f7f9f7 100%)}
+    .wrap{max-width:1000px;margin:auto;padding:24px}
+    .card{background:linear-gradient(135deg,rgba(255,255,255,.95),rgba(250,249,255,.9));
+          border:1px solid #ede9fe;border-radius:14px;padding:18px;margin:16px 0}
+    h1,h2,h3{color:#374151}
+    pre{background:linear-gradient(135deg,#f5f3ff,#f0f4f0);
+        border:1px solid #e9d5ff;border-radius:12px;padding:14px;overflow:auto}
+    code{font-family:ui-monospace,Menlo,Consolas,monospace}
+    .btn{display:inline-block;background:linear-gradient(135deg,#a78bfa,#8b5cf6);color:#fff;border-radius:12px;padding:10px 14px;text-decoration:none}
+    .badge{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:9999px;background:#ea8a47;color:#fff;font-weight:700;margin-right:8px}
+    .tip{border-left:4px solid #8b5cf6;background:#faf9ff;border-radius:8px;padding:10px;margin-top:8px}
+    .warn{color:#b45309}
+    .kbd{border:1px solid #e5e7eb;border-bottom-width:2px;border-radius:6px;padding:0 6px;background:#fff}
+    .hl{background:#fff7ed;border:1px dashed #fdba74;border-radius:.5rem;padding:.5rem}
+    .tick::before{content:"✔ ";color:#16a34a}
   </style>
 </head>
-<body class="bg-gradient-to-b from-primary-50 via-white to-primary-50 text-slate-900">
-  <main class="max-w-4xl mx-auto px-4 py-16">
-    <section class="glass rounded-2xl p-10 text-center">
-      <h1 class="text-3xl font-extrabold mb-2">Leçon 2 — CRUD Visuel</h1>
-      <p class="text-slate-700">Cette page sera remplie avec le formulaire d’ajout/édition/suppression, la liste en temps réel, et les bonnes pratiques ✨</p>
-      <div class="mt-6">
-        <a href="lesson1_firebase_debutant.html" class="btn-primary">← Revenir à la Leçon 1</a>
-      </div>
-    </section>
-  </main>
+<body>
+<div class="wrap">
+
+  <header class="card" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+    <h1>Leçon 2 — CRUD Firestore (multi-fichiers, <em>sans service / modèle / contrôleurs</em>)</h1>
+    <nav class="hidden sm:flex gap-2">
+      <a class="btn" href="#plan">Plan</a>
+      <a class="btn" href="#fichiers">Fichiers</a>
+      <a class="btn" href="#liste">Liste</a>
+      <a class="btn" href="#form">Formulaire</a>
+      <a class="btn" href="#main">main.dart</a>
+    </nav>
+  </header>
+
+  <section class="card">
+    <p class="text-soft">
+      Objectif : réaliser un CRUD <strong>Membres</strong> en plusieurs fichiers, mais <u>sans</u> service ni modèle, et <u>sans TextEditingController</u>.
+      Les pages parlent directement à <span class="chip">Cloud Firestore</span> avec des <span class="hl">Map&lt;String,dynamic&gt;</span> et des
+      <code>TextFormField(initialValue: ..., onChanged: ...)</code>.
+    </p>
+    <div class="tip">
+      <p><strong>Règles Firestore — MODE TEST UNIQUEMENT</strong> :</p>
+<pre><code>rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true; // ⚠️ Test seulement
+    }
+  }
+}</code></pre>
+    </div>
+  </section>
+
+  <!-- Plan -->
+  <section id="plan" class="card">
+    <h2>📍 Plan</h2>
+    <ol>
+      <li><span class="badge">0</span>Préparer (packages + config)</li>
+      <li><span class="badge">1</span>Arborescence des fichiers</li>
+      <li><span class="badge">R</span>Page Liste (Lire + Supprimer + Aller vers Form)</li>
+      <li><span class="badge">C/U</span>Page Formulaire (Créer + Mettre à jour, <em>sans contrôleurs</em>)</li>
+      <li><span class="badge">▶</span>main.dart (initialiser Firebase)</li>
+      <li><span class="badge">★</span>Décryptage ligne par ligne + Dépannage</li>
+    </ol>
+  </section>
+
+  <!-- 0) Préparer -->
+  <section class="card">
+    <h2><span class="badge">0</span>Préparer</h2>
+    <p class="tick">Dans <code>pubspec.yaml</code> :</p>
+<pre><code>dependencies:
+  flutter:
+    sdk: flutter
+  firebase_core: ^3.5.0
+  cloud_firestore: ^5.4.4
+</code></pre>
+    <p class="tick">Exécute <span class="kbd">flutter pub get</span>, puis <span class="kbd">flutterfire configure</span> (génère <code>firebase_options.dart</code>).</p>
+    <p class="warn">En prod : on passera à des règles sécurisées + Auth.</p>
+  </section>
+
+  <!-- 1) Arborescence -->
+  <section id="fichiers" class="card">
+    <h2><span class="badge">1</span>Arborescence minimale</h2>
+<pre><code>lib/
+  pages/
+    member_list_page.dart
+    member_form_page.dart
+  main.dart
+  firebase_options.dart   // généré par flutterfire configure
+</code></pre>
+    <p class="tip">Les pages font tout : affichage + appels Firestore directs.</p>
+  </section>
+
+  <!-- 2) Liste -->
+  <section id="liste" class="card">
+    <h2><span class="badge">R</span>Page Liste — <code>lib/pages/member_list_page.dart</code></h2>
+<pre><code>import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'member_form_page.dart';
+
+class MemberListPage extends StatelessWidget {
+  const MemberListPage({super.key});
+
+  Future&lt;void&gt; _confirmDelete(BuildContext context, String id, String name) async {
+    final ok = await showDialog&lt;bool&gt;(
+      context: context,
+      builder: (ctx) =&gt; AlertDialog(
+        title: const Text('Supprimer'),
+        content: Text('Supprimer $name ?'),
+        actions: [
+          TextButton(onPressed: () =&gt; Navigator.pop(ctx, false), child: const Text('Annuler')),
+          FilledButton(onPressed: () =&gt; Navigator.pop(ctx, true), child: const Text('Supprimer')),
+        ],
+      ),
+    );
+    if (ok == true) {
+      await FirebaseFirestore.instance.collection('membres').doc(id).delete();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Membre supprimé')));
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final col = FirebaseFirestore.instance.collection('membres');
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Membres')),
+      body: StreamBuilder&lt;QuerySnapshot&gt;(
+        stream: col.orderBy('createdAt', descending: true).snapshots(),
+        builder: (context, snap) {
+          if (snap.hasError) return const Center(child: Text('Erreur de chargement'));
+          if (snap.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final docs = snap.data?.docs ?? [];
+          if (docs.isEmpty) return const Center(child: Text('Aucun membre pour le moment'));
+
+          return ListView.separated(
+            itemCount: docs.length,
+            separatorBuilder: (_, __) =&gt; const Divider(height: 1),
+            itemBuilder: (context, i) {
+              final d = docs[i];
+              final data = d.data() as Map&lt;String, dynamic&gt;? ?? {};
+              final first = (data['firstName'] ?? '').toString();
+              final last  = (data['lastName'] ?? '').toString();
+              final age   = (data['age'] ?? '').toString();
+              final role  = (data['role'] ?? 'membre').toString();
+              final note  = (data['note'] ?? '').toString();
+
+              return ListTile(
+                leading: CircleAvatar(child: Text(first.isNotEmpty ? first[0].toUpperCase() : '?')),
+                title: Text('$first $last'),
+                subtitle: Text('Âge: $age — Rôle: $role${note.isNotEmpty ? " — $note" : ""}'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =&gt; MemberFormPage(
+                        docId: d.id,
+                        existing: data, // Map simple
+                      ),
+                    ),
+                  );
+                },
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  tooltip: 'Supprimer',
+                  onPressed: () =&gt; _confirmDelete(context, d.id, '$first $last'),
+                ),
+              );
+            },
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) =&gt; const MemberFormPage()),
+          );
+        },
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+}
+</code></pre>
+
+    <h3>🧠 Décryptage — <code>StreamBuilder</code> (ligne par ligne)</h3>
+    <div class="tip">
+      <p><code>final col = FirebaseFirestore.instance.collection('membres');</code> — on pointe vers la collection.</p>
+      <p><code>col.orderBy('createdAt', descending: true).snapshots()</code> — on écoute en temps réel, du plus récent au plus ancien.</p>
+      <p><code>if (snap.connectionState == ConnectionState.waiting)</code> — pendant qu’on attend, on affiche un loader.</p>
+      <p><code>final docs = snap.data?.docs ?? [];</code> — si pas de données, on évite l’erreur en renvoyant une liste vide.</p>
+      <p><code>d.data() as Map&lt;String,dynamic&gt;? ?? {}</code> — on récupère chaque document sous forme de Map (ou <code>{}</code> si absent).</p>
+      <p><code>onTap: Navigator.push(...MemberFormPage(...))</code> — on ouvre le formulaire en mode édition en passant <code>docId</code> + la Map.</p>
+      <p><code>_confirmDelete(...)</code> — petite boîte “es-tu sûr ?”, puis <code>delete()</code> direct sur le doc.</p>
+    </div>
+  </section>
+
+  <!-- 3) Formulaire (sans contrôleurs) -->
+  <section id="form" class="card">
+    <h2><span class="badge">C/U</span>Page Formulaire — <code>lib/pages/member_form_page.dart</code></h2>
+<pre><code>import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class MemberFormPage extends StatefulWidget {
+  final String? docId;                     // null = création, non-null = édition
+  final Map&lt;String, dynamic&gt;? existing;    // valeurs initiales si édition
+  const MemberFormPage({super.key, this.docId, this.existing});
+
+  @override
+  State&lt;MemberFormPage&gt; createState() =&gt; _MemberFormPageState();
+}
+
+class _MemberFormPageState extends State&lt;MemberFormPage&gt; {
+  final _formKey = GlobalKey&lt;FormState&gt;();
+
+  // ✅ Sans contrôleurs : on garde des variables simples
+  String firstName = '';
+  String lastName  = '';
+  String role      = 'membre';
+  String note      = '';
+  String ageText   = '';  // on garde le texte saisi pour pouvoir valider
+
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final e = widget.existing;
+    if (e != null) {
+      firstName = (e['firstName'] ?? '').toString();
+      lastName  = (e['lastName'] ?? '').toString();
+      role      = (e['role'] ?? 'membre').toString();
+      note      = (e['note'] ?? '').toString();
+      final a   = e['age'];
+      ageText   = a == null ? '' : a.toString();
+    }
+  }
+
+  Future&lt;void&gt; _save() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() =&gt; _saving = true);
+    final col = FirebaseFirestore.instance.collection('membres');
+    try {
+      final age = int.tryParse(ageText.trim()) ?? 0;
+
+      if (widget.docId == null) {
+        // CREATE
+        await col.add({
+          'firstName': firstName.trim(),
+          'lastName' : lastName.trim(),
+          'age'      : age,
+          'role'     : role.trim().isEmpty ? 'membre' : role.trim(),
+          'note'     : note.trim().isEmpty ? null : note.trim(),
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Membre ajouté')));
+      } else {
+        // UPDATE
+        await col.doc(widget.docId!).update({
+          'firstName': firstName.trim(),
+          'lastName' : lastName.trim(),
+          'age'      : age,
+          'role'     : role.trim().isEmpty ? 'membre' : role.trim(),
+          'note'     : note.trim().isEmpty ? null : note.trim(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Membre modifié')));
+      }
+
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+      }
+    } finally {
+      if (mounted) setState(() =&gt; _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isEdit = widget.docId != null;
+    return Scaffold(
+      appBar: AppBar(title: Text(isEdit ? 'Modifier un membre' : 'Nouveau membre')),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: AbsorbPointer(
+            absorbing: _saving, // désactive les champs pendant l'enregistrement
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          initialValue: firstName,
+                          decoration: const InputDecoration(
+                            labelText: 'Prénom',
+                            border: OutlineInputBorder(),
+                          ),
+                          validator: (v) =&gt; (v == null || v.trim().isEmpty) ? 'Prénom requis' : null,
+                          onChanged: (v) =&gt; setState(() =&gt; firstName = v),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextFormField(
+                          initialValue: lastName,
+                          decoration: const InputDecoration(
+                            labelText: 'Nom',
+                            border: OutlineInputBorder(),
+                          ),
+                          validator: (v) =&gt; (v == null || v.trim().isEmpty) ? 'Nom requis' : null,
+                          onChanged: (v) =&gt; setState(() =&gt; lastName = v),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          initialValue: ageText,
+                          decoration: const InputDecoration(
+                            labelText: 'Âge',
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: TextInputType.number,
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) return null; // vide accepté = 0
+                            final n = int.tryParse(v.trim());
+                            if (n == null) return 'Entrez un nombre';
+                            if (n &lt; 0) return 'Âge ≥ 0';
+                            return null;
+                          },
+                          onChanged: (v) =&gt; setState(() =&gt; ageText = v),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextFormField(
+                          initialValue: role,
+                          decoration: const InputDecoration(
+                            labelText: 'Rôle (admin/staff/membre)',
+                            border: OutlineInputBorder(),
+                          ),
+                          onChanged: (v) =&gt; setState(() =&gt; role = v),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    initialValue: note,
+                    decoration: const InputDecoration(
+                      labelText: 'Note (optionnel)',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 2,
+                    onChanged: (v) =&gt; setState(() =&gt; note = v),
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: _save,
+                    icon: _saving
+                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.save_outlined),
+                    label: Text(isEdit ? 'Enregistrer' : 'Ajouter'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+</code></pre>
+
+    <h3>🧠 Décryptage — <code>_save()</code> (ligne par ligne)</h3>
+    <div class="tip">
+      <p><code>if (!_formKey.currentState!.validate()) return;</code> — stop si un champ requis est vide / âge invalide.</p>
+      <p><code>final col = FirebaseFirestore.instance.collection('membres');</code> — on pointe vers la collection.</p>
+      <p><code>final age = int.tryParse(ageText.trim()) ?? 0;</code> — convertit l’âge texte en nombre (0 si vide/invalide).</p>
+      <p><code>if (widget.docId == null) ... else ...</code> — <strong>création</strong> si pas d’ID, sinon <strong>mise à jour</strong>.</p>
+      <p><code>serverTimestamp()</code> — date écrite côté serveur (précise, cohérente pour tout le monde).</p>
+      <p><code>note.trim().isEmpty ? null : note.trim()</code> — on stocke <code>null</code> pour éviter les chaînes vides inutiles.</p>
+      <p><code>Navigator.pop(context)</code> — on revient à la liste après succès (qui se met à jour toute seule).</p>
+    </div>
+  </section>
+
+  <!-- 4) main.dart -->
+  <section id="main" class="card">
+    <h2><span class="badge">▶</span>Point d’entrée — <code>lib/main.dart</code></h2>
+<pre><code>import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'pages/member_list_page.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(const App());
+}
+
+class App extends StatelessWidget {
+  const App({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'CRUD Membres (sans service)',
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF8B5CF6)),
+      ),
+      home: const MemberListPage(),
+    );
+  }
+}
+</code></pre>
+    <div class="tip">
+      <p><code>WidgetsFlutterBinding.ensureInitialized()</code> — requis avant <code>Firebase.initializeApp</code> asynchrone.</p>
+      <p><code>firebase_options.dart</code> — généré par <span class="kbd">flutterfire configure</span>.</p>
+    </div>
+  </section>
+
+  <!-- Dépannage -->
+  <section class="card">
+    <h2>🛠️ Dépannage rapide</h2>
+    <ul>
+      <li><strong>“firebase_options.dart introuvable”</strong> → exécute <span class="kbd">flutterfire configure</span> dans le projet.</li>
+      <li><strong>“PERMISSION_DENIED”</strong> → règles TEST bien déployées ? bon projet Firebase sélectionné ?</li>
+      <li><strong>Âge invalide</strong> → retaper un nombre (ex. <code>22</code>) ; la validation refuse les lettres et les négatifs.</li>
+      <li><strong>Ordre incorrect</strong> → recréer via le formulaire (on ajoute <code>createdAt</code> automatiquement).</li>
+    </ul>
+  </section>
+
+  <!-- Mini-exos -->
+  <section class="card">
+    <h2>🎯 Mini-exercices</h2>
+    <ul>
+      <li>Ajouter un champ <code>email</code> (form + liste) avec validation “contient @”.</li>
+      <li>Ajouter une confirmation avant suppression (déjà montré, rends-la obligatoire).</li>
+      <li>Ajouter un filtre d’affichage (boutons “Tous / Staff / Admin / Membre”).</li>
+    </ul>
+  </section>
+
+  <footer class="card">
+    <p>✔ Leçon terminée. <strong>Prochaine leçon</strong> : introduire un <em>service</em> (centraliser Firestore) puis un <em>modèle</em> (<code>Member</code>) avec des types propres.</p>
+  </footer>
+
+</div>
 </body>
 </html>
